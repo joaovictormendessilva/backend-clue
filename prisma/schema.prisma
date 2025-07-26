@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+// Models
+
+model User {
+  id   Int    @unique @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sessionId Int     @map("session_id")
+  session   Session @relation(fields: [sessionId], references: [id])
+
+  currentPlayerInsession SessionState?  @relation("CurrentPlayerId")
+  gamesWon               SessionState[] @relation("GamesWon")
+
+  suggestions Suggestion[]
+
+  userLogs       LogEvent[] @relation("UserLogs")
+  targetUserLogs LogEvent[] @relation("TargetUserLogs")
+
+  revealingUser       RevealedCard[] @relation("RevealingUser")
+  targetRevealingUser RevealedCard[] @relation("TargetRevealingUser")
+
+  userFinalAccusation FinalAccusation[] @relation("UserFinalAccusation")
+
+  @@map("users")
+}
+
+model Session {
+  id Int @unique @default(autoincrement())
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User[]
+
+  sessionState SessionState? @relation("sessionId")
+
+  suggestions Suggestion[]
+
+  LogEvent LogEvent[]
+
+  finalAccusation FinalAccusation[] @relation("FinalAccusation")
+
+  @@map("sessions")
+}
+
+model SessionState {
+  id Int @id @unique @default(autoincrement())
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  status String
+
+  currentPlayerId Int  @unique @map("current_player_id")
+  currentPlayer   User @relation(name: "CurrentPlayerId", fields: [currentPlayerId], references: [id])
+
+  winnerId Int  @unique @map("winner_id")
+  winner   User @relation(name: "GamesWon", fields: [winnerId], references: [id])
+
+  sessionId Int     @unique @map("session_id")
+  session   Session @relation(name: "sessionId", fields: [sessionId], references: [id])
+
+  trueSuspectId Int  @map("true_suspect_id")
+  suspect       Card @relation(name: "TrueSuspectInSession", fields: [trueSuspectId], references: [id])
+
+  trueRoomId Int  @map("true_room_id")
+  room       Card @relation(name: "TrueRoomInSession", fields: [trueRoomId], references: [id])
+
+  trueWeaponId Int  @map("true_weapon_id")
+  weapon       Card @relation(name: "TrueWeaponInSession", fields: [trueWeaponId], references: [id])
+
+  @@map("session_states")
+}
+
+model Suggestion {
+  id Int @id @default(autoincrement())
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+
+  sessionId Int
+  session   Session @relation(fields: [sessionId], references: [id])
+
+  suspectId Int  @map("suspect_id")
+  suspect   Card @relation(name: "SuspectSuggested", fields: [suspectId], references: [id])
+
+  roomId Int  @map("room_id")
+  room   Card @relation(name: "RoomSuggested", fields: [roomId], references: [id])
+
+  weaponId Int  @map("weapon_id")
+  weapon   Card @relation(name: "WeaponSuggested", fields: [weaponId], references: [id])
+
+  logEvent LogEvent[]
+
+  @@map("suggestions")
+}
+
+model Card {
+  id   Int      @id @default(autoincrement())
+  name String
+  type CardType
+
+  suspectSuggested Suggestion[] @relation("SuspectSuggested")
+  roomSuggested    Suggestion[] @relation("RoomSuggested")
+  weaponSuggested  Suggestion[] @relation("WeaponSuggested")
+
+  trueSuspectInSession SessionState[] @relation("TrueSuspectInSession")
+  trueRoomInSession    SessionState[] @relation("TrueRoomInSession")
+  trueWeaponInSession  SessionState[] @relation("TrueWeaponInSession")
+
+  revealedCard RevealedCard[] @relation("RevealedCard")
+
+  suspectAccused FinalAccusation[] @relation("SuspectAccused")
+  roomAccused    FinalAccusation[] @relation("RoomAccused")
+  weaponAccused  FinalAccusation[] @relation("WeaponAccused")
+}
+
+model LogEvent {
+  id Int @id @default(autoincrement())
+
+  sessionId Int     @map("session_id")
+  session   Session @relation(fields: [sessionId], references: [id])
+
+  userId Int  @map("user_id")
+  user   User @relation(name: "UserLogs", fields: [userId], references: [id])
+
+  targetUserId Int?  @map("target_user_id")
+  targetUser   User? @relation(name: "TargetUserLogs", fields: [targetUserId], references: [id])
+
+  type LogEventType
+  data Json
+
+  suggestionId Int?        @map("suggestion_id")
+  suggestion   Suggestion? @relation(fields: [suggestionId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  RevealedCard RevealedCard[]
+}
+
+model RevealedCard {
+  id Int @unique @default(autoincrement())
+
+  logEventId Int      @map("log_event_id")
+  logEvent   LogEvent @relation(fields: [logEventId], references: [id])
+
+  userId Int  @map("user_id")
+  user   User @relation(name: "RevealingUser", fields: [userId], references: [id])
+
+  targetRevealingUserId Int  @map("target_revealing_user_id")
+  targetRevealingUser   User @relation(name: "TargetRevealingUser", fields: [targetRevealingUserId], references: [id])
+
+  cardId Int  @map("card_id")
+  card   Card @relation(name: "RevealedCard", fields: [cardId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+model FinalAccusation {
+  id Int @id @default(autoincrement())
+
+  userId Int  @map("user_id")
+  user   User @relation(name: "UserFinalAccusation", fields: [userId], references: [id])
+
+  sessionId Int     @map("session_id")
+  session   Session @relation(name: "FinalAccusation", fields: [sessionId], references: [id])
+
+  suspectAccusedId Int  @map("suspect_accused_id")
+  suspectAccused   Card @relation(name: "SuspectAccused", fields: [suspectAccusedId], references: [id])
+
+  roomAccusedId Int  @map("room_accused_id")
+  roomAccused   Card @relation(name: "RoomAccused", fields: [roomAccusedId], references: [id])
+
+  weaponAccusedId Int  @map("weapon_accused_id")
+  weaponAccused   Card @relation(name: "WeaponAccused", fields: [weaponAccusedId], references: [id])
+
+  isCorrect Boolean @map("is_correct")
+
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+// Enums
+
+enum LogEventType {
+  Suggestion
+  ShowCard
+  NoCard
+  Win
+}
+
+enum CardType {
+  Suspect
+  Room
+  Weapon
+}
