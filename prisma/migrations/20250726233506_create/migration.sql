@@ -1,80 +1,56 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "LogEventType" AS ENUM ('Suggestion', 'ShowCard', 'NoCard', 'Win');
 
-  - You are about to drop the `Card` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `FinalAccusation` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `LogEvent` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `RevealedCard` table. If the table is not empty, all the data it contains will be lost.
+-- CreateEnum
+CREATE TYPE "CardType" AS ENUM ('Suspect', 'Room', 'Weapon');
 
-*/
--- DropForeignKey
-ALTER TABLE "FinalAccusation" DROP CONSTRAINT "FinalAccusation_room_accused_id_fkey";
+-- CreateTable
+CREATE TABLE "users" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "session_id" INTEGER NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "FinalAccusation" DROP CONSTRAINT "FinalAccusation_session_id_fkey";
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
 
--- DropForeignKey
-ALTER TABLE "FinalAccusation" DROP CONSTRAINT "FinalAccusation_suspect_accused_id_fkey";
+-- CreateTable
+CREATE TABLE "sessions" (
+    "id" SERIAL NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL
+);
 
--- DropForeignKey
-ALTER TABLE "FinalAccusation" DROP CONSTRAINT "FinalAccusation_user_id_fkey";
+-- CreateTable
+CREATE TABLE "session_states" (
+    "id" SERIAL NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "status" TEXT NOT NULL,
+    "current_player_id" INTEGER NOT NULL,
+    "winner_id" INTEGER NOT NULL,
+    "session_id" INTEGER NOT NULL,
+    "true_suspect_id" INTEGER NOT NULL,
+    "true_room_id" INTEGER NOT NULL,
+    "true_weapon_id" INTEGER NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "FinalAccusation" DROP CONSTRAINT "FinalAccusation_weapon_accused_id_fkey";
+    CONSTRAINT "session_states_pkey" PRIMARY KEY ("id")
+);
 
--- DropForeignKey
-ALTER TABLE "LogEvent" DROP CONSTRAINT "LogEvent_session_id_fkey";
+-- CreateTable
+CREATE TABLE "suggestions" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "sessionId" INTEGER NOT NULL,
+    "suspect_id" INTEGER NOT NULL,
+    "room_id" INTEGER NOT NULL,
+    "weapon_id" INTEGER NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "LogEvent" DROP CONSTRAINT "LogEvent_suggestion_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "LogEvent" DROP CONSTRAINT "LogEvent_target_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "LogEvent" DROP CONSTRAINT "LogEvent_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "RevealedCard" DROP CONSTRAINT "RevealedCard_card_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "RevealedCard" DROP CONSTRAINT "RevealedCard_log_event_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "RevealedCard" DROP CONSTRAINT "RevealedCard_target_revealing_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "RevealedCard" DROP CONSTRAINT "RevealedCard_user_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "session_states" DROP CONSTRAINT "session_states_true_room_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "session_states" DROP CONSTRAINT "session_states_true_suspect_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "session_states" DROP CONSTRAINT "session_states_true_weapon_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "suggestions" DROP CONSTRAINT "suggestions_room_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "suggestions" DROP CONSTRAINT "suggestions_suspect_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "suggestions" DROP CONSTRAINT "suggestions_weapon_id_fkey";
-
--- DropTable
-DROP TABLE "Card";
-
--- DropTable
-DROP TABLE "FinalAccusation";
-
--- DropTable
-DROP TABLE "LogEvent";
-
--- DropTable
-DROP TABLE "RevealedCard";
+    CONSTRAINT "suggestions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "cards" (
@@ -124,7 +100,37 @@ CREATE TABLE "final_accusations" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sessions_id_key" ON "sessions"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "session_states_id_key" ON "session_states"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "session_states_current_player_id_key" ON "session_states"("current_player_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "session_states_winner_id_key" ON "session_states"("winner_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "session_states_session_id_key" ON "session_states"("session_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "revealed_cards_id_key" ON "revealed_cards"("id");
+
+-- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "sessions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "session_states" ADD CONSTRAINT "session_states_current_player_id_fkey" FOREIGN KEY ("current_player_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "session_states" ADD CONSTRAINT "session_states_winner_id_fkey" FOREIGN KEY ("winner_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "session_states" ADD CONSTRAINT "session_states_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "sessions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "session_states" ADD CONSTRAINT "session_states_true_suspect_id_fkey" FOREIGN KEY ("true_suspect_id") REFERENCES "cards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -134,6 +140,12 @@ ALTER TABLE "session_states" ADD CONSTRAINT "session_states_true_room_id_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "session_states" ADD CONSTRAINT "session_states_true_weapon_id_fkey" FOREIGN KEY ("true_weapon_id") REFERENCES "cards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "suggestions" ADD CONSTRAINT "suggestions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "suggestions" ADD CONSTRAINT "suggestions_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "sessions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "suggestions" ADD CONSTRAINT "suggestions_suspect_id_fkey" FOREIGN KEY ("suspect_id") REFERENCES "cards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
