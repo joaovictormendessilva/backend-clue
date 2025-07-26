@@ -128,6 +128,8 @@ model Card {
   suspectAccused FinalAccusation[] @relation("SuspectAccused")
   roomAccused    FinalAccusation[] @relation("RoomAccused")
   weaponAccused  FinalAccusation[] @relation("WeaponAccused")
+
+  @@map("cards")
 }
 
 model LogEvent {
@@ -151,6 +153,8 @@ model LogEvent {
   createdAt DateTime @default(now())
 
   RevealedCard RevealedCard[]
+
+  @@map("log_events")
 }
 
 model RevealedCard {
@@ -169,6 +173,8 @@ model RevealedCard {
   card   Card @relation(name: "RevealedCard", fields: [cardId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("revealed_cards")
 }
 
 model FinalAccusation {
@@ -192,6 +198,8 @@ model FinalAccusation {
   isCorrect Boolean @map("is_correct")
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("final_accusations")
 }
 
 // Enums
