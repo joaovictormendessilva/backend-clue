@@ -3,9 +3,12 @@ import { CardType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto/update-card.dto';
+import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 
 @Injectable()
 export class CardsService {
+  private readonly resourceName = 'Card';
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(cardDto: CreateCardDto) {
@@ -46,11 +49,7 @@ export class CardsService {
 
       return updatedCard;
     } catch (error) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException('Card not found!');
-      }
-
-      throw error;
+      handlePrismaError(error, this.resourceName);
     }
   }
 
@@ -62,11 +61,7 @@ export class CardsService {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException('Card not found!');
-      }
-
-      throw error;
+      handlePrismaError(error, this.resourceName);
     }
   }
 }
