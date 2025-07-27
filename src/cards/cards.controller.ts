@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 
@@ -9,5 +9,10 @@ export class CardsController {
   @Post('create')
   async create(@Body() cardDto: CreateCardDto) {
     return await this.cardsService.create(cardDto);
+  }
+
+  @Get('getAll')
+  async getAll() {
+    return await this.cardsService.getAll();
   }
 }

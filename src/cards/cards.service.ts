@@ -18,4 +18,8 @@ export class CardsService {
 
     return card;
   }
+
+  async getAll() {
+    return await this.prisma.card.findMany();
+  }
 }
