@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { CardType } from '@prisma/client';
 import { IsEnum, IsNotEmpty } from 'class-validator';
 
@@ -7,5 +8,8 @@ export class CreateCardDto {
 
   @IsEnum(CardType, { message: 'Card type invalid!' })
   @IsNotEmpty({ message: 'Type is required!' })
+  @ApiProperty({
+    enum: CardType,
+  })
   type: CardType;
 }
