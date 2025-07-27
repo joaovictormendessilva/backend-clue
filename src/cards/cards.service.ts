@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CardType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 
@@ -21,5 +22,15 @@ export class CardsService {
 
   async getAll() {
     return await this.prisma.card.findMany();
+  }
+
+  async getByType(type: CardType) {
+    const cards = await this.prisma.card.findMany({
+      where: {
+        type,
+      },
+    });
+
+    return cards;
   }
 }

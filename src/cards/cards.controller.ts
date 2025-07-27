@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { CardType } from '@prisma/client';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 
@@ -14,5 +15,10 @@ export class CardsController {
   @Get('getAll')
   async getAll() {
     return await this.cardsService.getAll();
+  }
+
+  @Get('getByType')
+  async getByType(@Query('type') type: CardType) {
+    return await this.cardsService.getByType(type);
   }
 }
