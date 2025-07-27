@@ -45,4 +45,12 @@ export class CardsService {
 
     return updatedCard;
   }
+
+  async delete(id: number) {
+    return await this.prisma.card.delete({
+      where: {
+        id,
+      },
+    });
+  }
 }

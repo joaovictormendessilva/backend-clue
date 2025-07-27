@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { CardType } from '@prisma/client';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
@@ -26,5 +35,10 @@ export class CardsController {
   @Put('update/:id')
   async update(@Param('id') id: number, @Body() updateCardDto: UpdateCardDto) {
     return await this.cardsService.update(id, updateCardDto);
+  }
+
+  @Delete('delete/:id')
+  async delete(@Param('id') id: number) {
+    return await this.cardsService.delete(id);
   }
 }
