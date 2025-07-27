@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CardType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
+import { UpdateCardDto } from './dto/update-card.dto/update-card.dto';
 
 @Injectable()
 export class CardsService {
@@ -32,5 +33,16 @@ export class CardsService {
     });
 
     return cards;
+  }
+
+  async update(id: number, data: UpdateCardDto) {
+    const updatedCard = await this.prisma.card.update({
+      where: {
+        id,
+      },
+      data,
+    });
+
+    return updatedCard;
   }
 }

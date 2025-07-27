@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CardType } from '@prisma/client';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
+import { UpdateCardDto } from './dto/update-card.dto/update-card.dto';
 
 @Controller('cards')
 export class CardsController {
@@ -20,5 +21,10 @@ export class CardsController {
   @Get('getByType')
   async getByType(@Query('type') type: CardType) {
     return await this.cardsService.getByType(type);
+  }
+
+  @Put('update/:id')
+  async update(@Param('id') id: number, @Body() updateCardDto: UpdateCardDto) {
+    return await this.cardsService.update(id, updateCardDto);
   }
 }
