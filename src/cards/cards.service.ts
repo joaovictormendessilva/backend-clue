@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CardType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
@@ -36,21 +36,37 @@ export class CardsService {
   }
 
   async update(id: number, data: UpdateCardDto) {
-    const updatedCard = await this.prisma.card.update({
-      where: {
-        id,
-      },
-      data,
-    });
+    try {
+      const updatedCard = await this.prisma.card.update({
+        where: {
+          id,
+        },
+        data,
+      });
 
-    return updatedCard;
+      return updatedCard;
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Card not found!');
+      }
+
+      throw error;
+    }
   }
 
   async delete(id: number) {
-    return await this.prisma.card.delete({
-      where: {
-        id,
-      },
-    });
+    try {
+      return await this.prisma.card.delete({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Card not found!');
+      }
+
+      throw error;
+    }
   }
 }
