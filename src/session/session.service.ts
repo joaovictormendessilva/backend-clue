@@ -12,4 +12,10 @@ export class SessionService {
 
     return session;
   }
+
+  async getAll() {
+    const sessions = await this.prisma.session.findMany();
+
+    return sessions;
+  }
 }
