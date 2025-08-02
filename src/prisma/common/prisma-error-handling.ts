@@ -1,13 +1,18 @@
 import { Prisma } from '@prisma/client';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 export function handlePrismaError(error: unknown, resourceName: string) {
   const notFoundCodeError = 'P2025';
-  if (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === notFoundCodeError
-  ) {
-    throw new NotFoundException(`${resourceName} not found'`);
+  const uniqueConstraintKey = 'P2002';
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === notFoundCodeError) {
+      throw new NotFoundException(`${resourceName} not found!'`);
+    }
+
+    if (error.code === uniqueConstraintKey) {
+      throw new ConflictException(`${resourceName} already exists!'`);
+    }
   }
 
   throw error;
