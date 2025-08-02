@@ -1,21 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CardType } from '@prisma/client';
-import { CardsService } from './cards.service';
+import { CardService } from './card.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto/update-card.dto';
 
-@Controller('cards')
-export class CardsController {
-  constructor(private readonly cardsService: CardsService) {}
+@Controller('card')
+export class CardController {
+  constructor(private readonly cardsService: CardService) {}
 
   @Post('create')
   async create(@Body() cardDto: CreateCardDto) {

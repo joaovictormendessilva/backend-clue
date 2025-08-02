@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CardType } from '@prisma/client';
+import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto/update-card.dto';
-import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 
 @Injectable()
-export class CardsService {
+export class CardService {
   private readonly resourceName = 'Card';
 
   constructor(private readonly prisma: PrismaService) {}
