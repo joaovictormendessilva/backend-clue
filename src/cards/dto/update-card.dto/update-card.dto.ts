@@ -1,4 +1,15 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateCardDto } from '../create-card.dto/create-card.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { CardType } from '@prisma/client';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-export class UpdateCardDto extends PartialType(CreateCardDto) {}
+export class UpdateCardDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsEnum(CardType, { message: 'Card type invalid!' })
+  @ApiProperty({
+    enum: CardType,
+  })
+  type?: CardType;
+}
