@@ -5,7 +5,10 @@ import { CreateSessionDto } from './dto/create-session.dto/create-session.dto';
 
 @Injectable()
 export class SessionService {
-  private readonly resourceName = 'Session';
+  private readonly resourceName = {
+    session: 'Session',
+    user: 'User',
+  };
   constructor(private readonly prisma: PrismaService) {}
 
   async create(sessionDto: CreateSessionDto) {
@@ -18,7 +21,7 @@ export class SessionService {
 
       return session;
     } catch (error) {
-      handlePrismaError(error, this.resourceName);
+      handlePrismaError(error, this.resourceName.session, this.resourceName.user);
     }
   }
 
