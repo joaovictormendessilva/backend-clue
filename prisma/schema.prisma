@@ -38,11 +38,16 @@ model User {
 
   userFinalAccusation FinalAccusation[] @relation("UserFinalAccusation")
 
+  ownerId Session[] @relation("OwnerId")
+
   @@map("users")
 }
 
 model Session {
   id Int @unique @default(autoincrement())
+
+  ownerId Int  @map("owner_id")
+  owner   User @relation(name: "OwnerId", fields: [ownerId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
