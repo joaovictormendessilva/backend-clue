@@ -21,4 +21,9 @@ export class SessionController {
   async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.sessionService.delete(id);
   }
+
+  @Get('getById/:id')
+  async getById(@Param('id', ParseIntPipe) id: number) {
+    return await this.sessionService.getById(id);
+  }
 }

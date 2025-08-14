@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -41,5 +41,19 @@ export class SessionService {
     } catch (error) {
       handlePrismaError(error, this.resourceName.session);
     }
+  }
+
+  async getById(id: number) {
+    const session = await this.prisma.session.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException(`${this.resourceName.session} not found!`);
+    }
+
+    return session;
   }
 }
