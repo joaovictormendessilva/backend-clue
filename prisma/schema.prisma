@@ -244,4 +244,5 @@ enum SessionStateStatusType {
   Waiting
   Active
   Finished
+  Cancelled
 }
