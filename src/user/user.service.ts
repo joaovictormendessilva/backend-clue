@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto/create-user.dto';
@@ -56,6 +56,24 @@ export class UserService {
           password: true,
         },
       });
+
+      return user;
+    } catch (error) {
+      handlePrismaError(error, this.resourceName.user);
+    }
+  }
+
+  async getById(userId: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`${this.resourceName.user} not found!`);
+      }
 
       return user;
     } catch (error) {

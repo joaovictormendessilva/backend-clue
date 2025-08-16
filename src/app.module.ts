@@ -4,9 +4,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { CardModule } from './card/card.module';
 import { UserModule } from './user/user.module';
 import { SessionModule } from './session/session.module';
+import { SessionStateModule } from './session-state/session-state.module';
 
 @Module({
-  imports: [PrismaModule, CardModule, UserModule, SessionModule],
+  imports: [PrismaModule, CardModule, UserModule, SessionModule, SessionStateModule],
   controllers: [],
   providers: [PrismaService],
 })
