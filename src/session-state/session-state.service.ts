@@ -1,10 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateSessionStateDto } from './dto/create-session-state.dto';
-import { SessionService } from 'src/session/session.service';
-import { JoinSessionStateDto } from './dto/join-session-state.dto';
-import { UserService } from 'src/user/user.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SessionStateValidator } from 'src/session-state/validators/session-state.validator';
+import { CreateSessionStateDto } from './dto/create-session-state.dto';
+import { JoinSessionStateDto } from './dto/join-session-state.dto';
+import { LeaveSessionStateDto } from './dto/leave-session-state.dto';
 
 @Injectable()
 export class SessionStateService {
@@ -12,31 +12,18 @@ export class SessionStateService {
     sessionState: 'SessionState',
   };
 
-  private readonly playersLimit = 4;
-
   constructor(
+    private readonly sessionStateValidator: SessionStateValidator,
     private readonly prismaService: PrismaService,
-    private readonly sessionService: SessionService,
-    private readonly userService: UserService,
   ) {}
 
   async createWithFirstPlayer(createSessionStateDto: CreateSessionStateDto) {
     try {
       const { sessionId, userId } = createSessionStateDto;
 
-      const hasSessionState = await this.prismaService.sessionState.findFirst({
-        where: {
-          sessionId,
-        },
-      });
-
-      if (hasSessionState) {
-        throw new ConflictException('This SessionState already exists for this Session!');
-      }
-
-      await this.sessionService.getById(sessionId);
-
-      await this.userService.getById(userId);
+      await this.sessionStateValidator.ensureSessionStateNotExistsForSession(sessionId);
+      await this.sessionStateValidator.ensureSessionExists(sessionId);
+      await this.sessionStateValidator.ensureUserExists(userId);
 
       const sessionState = await this.prismaService.sessionState.create({
         data: {
@@ -53,6 +40,7 @@ export class SessionStateService {
         },
         include: {
           players: true,
+          session: true,
         },
       });
 
@@ -66,6 +54,7 @@ export class SessionStateService {
     const sessionStates = await this.prismaService.sessionState.findMany({
       include: {
         players: true,
+        session: true,
       },
     });
 
@@ -76,26 +65,11 @@ export class SessionStateService {
     const { userId } = joinSessionDto;
 
     try {
-      const playersInSessionState = await this.prismaService.player.count({
-        where: {
-          sessionStateId,
-        },
-      });
+      await this.sessionStateValidator.ensureUserExists(userId);
 
-      if (playersInSessionState >= this.playersLimit) {
-        throw new ConflictException(`SessionState already has ${this.playersLimit} players`);
-      }
+      await this.sessionStateValidator.ensureCanAddPlayer(sessionStateId);
 
-      const playerAlreadyExists = await this.prismaService.player.findFirst({
-        where: {
-          userId,
-          sessionStateId,
-        },
-      });
-
-      if (playerAlreadyExists) {
-        throw new ConflictException('Player already joined this SessionState.');
-      }
+      await this.sessionStateValidator.ensurePlayerIsNotInTheSessionState(userId, sessionStateId);
 
       const updatedSessionState = await this.prismaService.sessionState.update({
         data: {
@@ -110,6 +84,7 @@ export class SessionStateService {
         },
         include: {
           players: true,
+          session: true,
         },
       });
 
@@ -117,5 +92,54 @@ export class SessionStateService {
     } catch (error) {
       handlePrismaError(error, this.resourceName.sessionState);
     }
+  }
+
+  async getById(id: number) {
+    const sessionState = await this.prismaService.sessionState.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        players: true,
+        session: true,
+      },
+    });
+
+    if (!sessionState) {
+      throw new NotFoundException(`${this.resourceName.sessionState} not found!`);
+    }
+
+    return sessionState;
+  }
+
+  async leaveSession(id: number, leaveSessionStateDto: LeaveSessionStateDto) {
+    const { sessionId, userId } = leaveSessionStateDto;
+
+    await this.sessionStateValidator.ensureSessionStateExists(id);
+
+    await this.sessionStateValidator.ensureUserExists(userId);
+
+    await this.sessionStateValidator.ensureSessionExists(sessionId);
+
+    const player = await this.sessionStateValidator.ensurePlayerExistsInSession(userId, id);
+
+    await this.prismaService.player.delete({
+      where: {
+        id: player.id,
+        sessionStateId: id,
+      },
+    });
+
+    const sessionState = await this.prismaService.sessionState.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        players: true,
+        session: true,
+      },
+    });
+
+    return sessionState;
   }
 }

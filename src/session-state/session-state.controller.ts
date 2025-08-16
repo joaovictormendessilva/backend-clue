@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/c
 import { SessionStateService } from './session-state.service';
 import { CreateSessionStateDto } from './dto/create-session-state.dto';
 import { JoinSessionStateDto } from './dto/join-session-state.dto';
+import { LeaveSessionStateDto } from './dto/leave-session-state.dto';
 
 @Controller('session-state')
 export class SessionStateController {
@@ -23,5 +24,10 @@ export class SessionStateController {
     @Body() joinSessionDto: JoinSessionStateDto,
   ) {
     return await this.sessionStateService.joinSession(sessionStateId, joinSessionDto);
+  }
+
+  @Put('leave/:id')
+  async leaveSessionState(@Param('id', ParseIntPipe) id: number, @Body() leaveSessionStateDto: LeaveSessionStateDto) {
+    return await this.sessionStateService.leaveSession(id, leaveSessionStateDto);
   }
 }
