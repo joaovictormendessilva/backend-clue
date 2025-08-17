@@ -40,6 +40,8 @@ model User {
 
   ownerId Session[] @relation("OwnerId")
 
+  player Player[]
+
   @@map("users")
 }
 
@@ -71,27 +73,41 @@ model SessionState {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  status String
+  status SessionStateStatusType @default(Waiting)
 
-  currentPlayerId Int  @unique @map("current_player_id")
-  currentPlayer   User @relation(name: "CurrentPlayerId", fields: [currentPlayerId], references: [id])
+  currentPlayerId Int?  @unique @map("current_player_id")
+  currentPlayer   User? @relation(name: "CurrentPlayerId", fields: [currentPlayerId], references: [id])
 
-  winnerId Int  @unique @map("winner_id")
-  winner   User @relation(name: "GamesWon", fields: [winnerId], references: [id])
+  winnerId Int?  @unique @map("winner_id")
+  winner   User? @relation(name: "GamesWon", fields: [winnerId], references: [id])
 
   sessionId Int     @unique @map("session_id")
   session   Session @relation(name: "sessionId", fields: [sessionId], references: [id])
 
-  trueSuspectId Int  @map("true_suspect_id")
-  suspect       Card @relation(name: "TrueSuspectInSession", fields: [trueSuspectId], references: [id])
+  trueSuspectId Int?  @map("true_suspect_id")
+  suspect       Card? @relation(name: "TrueSuspectInSession", fields: [trueSuspectId], references: [id])
 
-  trueRoomId Int  @map("true_room_id")
-  room       Card @relation(name: "TrueRoomInSession", fields: [trueRoomId], references: [id])
+  trueRoomId Int?  @map("true_room_id")
+  room       Card? @relation(name: "TrueRoomInSession", fields: [trueRoomId], references: [id])
 
-  trueWeaponId Int  @map("true_weapon_id")
-  weapon       Card @relation(name: "TrueWeaponInSession", fields: [trueWeaponId], references: [id])
+  trueWeaponId Int?  @map("true_weapon_id")
+  weapon       Card? @relation(name: "TrueWeaponInSession", fields: [trueWeaponId], references: [id])
+
+  players Player[] @relation("PlayersInSession")
 
   @@map("session_states")
+}
+
+model Player {
+  id Int @id @default(autoincrement())
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+
+  sessionStateId Int          @map("session_state_id")
+  sessionState   SessionState @relation("PlayersInSession", fields: [sessionStateId], references: [id])
+
+  @@unique([userId, sessionStateId])
 }
 
 model Suggestion {
@@ -222,4 +238,11 @@ enum CardType {
   Suspect
   Room
   Weapon
+}
+
+enum SessionStateStatusType {
+  Waiting
+  Started
+  Finished
+  Cancelled
 }
