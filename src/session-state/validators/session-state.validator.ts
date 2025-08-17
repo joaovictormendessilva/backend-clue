@@ -86,4 +86,14 @@ export class SessionStateValidator {
       throw new ConflictException('Player already joined this SessionState.');
     }
   }
+
+  async ensureShouldCancelAfterLeave(sessionStateId: number) {
+    const playersRemaining = await this.prismaService.player.count({
+      where: {
+        sessionStateId,
+      },
+    });
+
+    return playersRemaining === 0;
+  }
 }

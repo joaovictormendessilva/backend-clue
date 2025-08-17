@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { SessionStateStatusType } from '@prisma/client';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionStateValidator } from 'src/session-state/validators/session-state.validator';
@@ -130,6 +131,12 @@ export class SessionStateService {
       },
     });
 
+    const shouldCancel = await this.sessionStateValidator.ensureShouldCancelAfterLeave(id);
+
+    if (shouldCancel) {
+      await this.updateSessionStateToCancelled(id);
+    }
+
     const sessionState = await this.prismaService.sessionState.findUnique({
       where: {
         id,
@@ -141,5 +148,16 @@ export class SessionStateService {
     });
 
     return sessionState;
+  }
+
+  private async updateSessionStateToCancelled(id: number) {
+    await this.prismaService.sessionState.update({
+      where: {
+        id,
+      },
+      data: {
+        status: SessionStateStatusType.Cancelled,
+      },
+    });
   }
 }
