@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { SessionStateStatusType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionService } from 'src/session/session.service';
 import { UserService } from 'src/user/user.service';
@@ -44,6 +45,20 @@ export class SessionStateValidator {
 
     if (hasSessionState) {
       throw new ConflictException('This SessionState already exists for this Session!');
+    }
+  }
+
+  async ensureSessionStateIsNotCancelled(sessionStateId: number) {
+    const sessionState = await this.prismaService.sessionState.findUnique({
+      where: {
+        id: sessionStateId,
+      },
+    });
+
+    const isSessionStateCancelled = sessionState?.status === SessionStateStatusType.Cancelled;
+
+    if (isSessionStateCancelled) {
+      throw new ConflictException('This session state is cancelled!');
     }
   }
 

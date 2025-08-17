@@ -66,6 +66,8 @@ export class SessionStateService {
     const { userId } = joinSessionDto;
 
     try {
+      await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
+
       await this.sessionStateValidator.ensureUserExists(userId);
 
       await this.sessionStateValidator.ensureCanAddPlayer(sessionStateId);
