@@ -156,13 +156,13 @@ export class SessionStateService {
   async startSessionState(sessionStateId: number, startSessionStateDto: StartSessionStateDto) {
     const { sessionId, userId } = startSessionStateDto;
 
-    await this.sessionStateValidator.ensureSessionExists(sessionId);
-    await this.sessionStateValidator.ensureSessionStateExists(sessionStateId);
-    await this.sessionStateValidator.ensureUserExists(userId);
-    await this.sessionStateValidator.ensurePlayerIsTheSessionOwner(sessionId, userId);
-    await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
-    await this.sessionStateValidator.ensureSessionStateIsNotFinished(sessionStateId);
-    await this.sessionStateValidator.ensureSessionStateIsNotStarted(sessionStateId);
+    await this.sessionStateValidator.ensureSessionStateOwnerCanUpdateStatus({
+      sessionId,
+      sessionStateId,
+      userId,
+      checkNotFinished: true,
+      checkNotStarted: true,
+    });
 
     const updatedSessionState = await this.updateSessionStateToStarted(sessionStateId);
 
@@ -172,12 +172,12 @@ export class SessionStateService {
   async finishSessionState(sessionStateId: number, finishSessionStateDto: FinishSessionStateDto) {
     const { sessionId, userId } = finishSessionStateDto;
 
-    await this.sessionStateValidator.ensureSessionExists(sessionId);
-    await this.sessionStateValidator.ensureSessionStateExists(sessionStateId);
-    await this.sessionStateValidator.ensureUserExists(userId);
-    await this.sessionStateValidator.ensurePlayerIsTheSessionOwner(sessionId, userId);
-    await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
-    await this.sessionStateValidator.ensureSessionStateIsNotFinished(sessionStateId);
+    await this.sessionStateValidator.ensureSessionStateOwnerCanUpdateStatus({
+      sessionId,
+      sessionStateId,
+      userId,
+      checkNotFinished: true,
+    });
 
     const updatedSessionState = await this.updateSessionStateToFinished(sessionStateId);
 
@@ -187,12 +187,12 @@ export class SessionStateService {
   async cancelSessionState(sessionStateId: number, cancelSessionStateDto: CancelSessionStateDto) {
     const { sessionId, userId } = cancelSessionStateDto;
 
-    await this.sessionStateValidator.ensureSessionExists(sessionId);
-    await this.sessionStateValidator.ensureSessionStateExists(sessionStateId);
-    await this.sessionStateValidator.ensureUserExists(userId);
-    await this.sessionStateValidator.ensurePlayerIsTheSessionOwner(sessionId, userId);
-    await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
-    await this.sessionStateValidator.ensureSessionStateIsNotFinished(sessionStateId);
+    await this.sessionStateValidator.ensureSessionStateOwnerCanUpdateStatus({
+      sessionId,
+      sessionStateId,
+      userId,
+      checkNotFinished: true,
+    });
 
     const updatedSessionState = await this.updateSessionStateToCancelled(sessionStateId);
 

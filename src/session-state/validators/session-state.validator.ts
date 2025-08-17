@@ -95,9 +95,9 @@ export class SessionStateValidator {
     sessionStateId: number;
     userId: number;
     checkNotStarted?: boolean;
-    checkNotfinished?: boolean;
+    checkNotFinished?: boolean;
   }) {
-    const { sessionId, sessionStateId, userId, checkNotStarted, checkNotfinished } = params;
+    const { sessionId, sessionStateId, userId, checkNotStarted, checkNotFinished } = params;
 
     await this.ensureSessionExists(sessionId);
     await this.ensureSessionStateExists(sessionStateId);
@@ -105,7 +105,7 @@ export class SessionStateValidator {
     await this.ensurePlayerIsTheSessionOwner(sessionId, userId);
     await this.ensureSessionStateIsNotCancelled(sessionStateId);
 
-    if (checkNotfinished) {
+    if (checkNotFinished) {
       await this.ensureSessionStateIsNotFinished(sessionStateId);
     }
 
