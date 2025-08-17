@@ -5,7 +5,7 @@ CREATE TYPE "LogEventType" AS ENUM ('Suggestion', 'ShowCard', 'NoCard', 'Win');
 CREATE TYPE "CardType" AS ENUM ('Suspect', 'Room', 'Weapon');
 
 -- CreateEnum
-CREATE TYPE "SessionStateStatusType" AS ENUM ('Waiting', 'Active', 'Finished', 'Cancelled');
+CREATE TYPE "SessionStateStatusType" AS ENUM ('Waiting', 'Started', 'Finished', 'Cancelled');
 
 -- CreateTable
 CREATE TABLE "users" (

@@ -62,6 +62,58 @@ export class SessionStateValidator {
     }
   }
 
+  async ensureSessionStateIsNotStarted(sessionStateId: number) {
+    const sessionState = await this.prismaService.sessionState.findUnique({
+      where: {
+        id: sessionStateId,
+      },
+    });
+
+    const isSessionStateAlreadyStarted = sessionState?.status === SessionStateStatusType.Started;
+
+    if (isSessionStateAlreadyStarted) {
+      throw new ConflictException('This session state is already started!');
+    }
+  }
+
+  async ensureSessionStateIsNotFinished(sessionStateId: number) {
+    const sessionState = await this.prismaService.sessionState.findUnique({
+      where: {
+        id: sessionStateId,
+      },
+    });
+
+    const isSessionStateAlreadyFinished = sessionState?.status === SessionStateStatusType.Finished;
+
+    if (isSessionStateAlreadyFinished) {
+      throw new ConflictException('This session state is already finished!');
+    }
+  }
+
+  async ensureSessionStateOwnerCanUpdateStatus(params: {
+    sessionId: number;
+    sessionStateId: number;
+    userId: number;
+    checkNotStarted?: boolean;
+    checkNotfinished?: boolean;
+  }) {
+    const { sessionId, sessionStateId, userId, checkNotStarted, checkNotfinished } = params;
+
+    await this.ensureSessionExists(sessionId);
+    await this.ensureSessionStateExists(sessionStateId);
+    await this.ensureUserExists(userId);
+    await this.ensurePlayerIsTheSessionOwner(sessionId, userId);
+    await this.ensureSessionStateIsNotCancelled(sessionStateId);
+
+    if (checkNotfinished) {
+      await this.ensureSessionStateIsNotFinished(sessionStateId);
+    }
+
+    if (checkNotStarted) {
+      await this.ensureSessionStateIsNotStarted(sessionStateId);
+    }
+  }
+
   async ensurePlayerExistsInSession(userId: number, sessionStateId: number) {
     const player = await this.prismaService.player.findFirst({
       where: {
@@ -110,5 +162,9 @@ export class SessionStateValidator {
     });
 
     return playersRemaining === 0;
+  }
+
+  async ensurePlayerIsTheSessionOwner(sessionId: number, userId: number) {
+    await this.sessionService.validateOwner(sessionId, userId);
   }
 }

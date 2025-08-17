@@ -1,6 +1,6 @@
 import { IsNumber } from 'class-validator';
 
-export class CreateSessionStateDto {
+export class StartSessionStateDto {
   @IsNumber({}, { message: 'SessionId is required!' })
   sessionId: number;
 

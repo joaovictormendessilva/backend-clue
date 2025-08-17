@@ -242,7 +242,7 @@ enum CardType {
 
 enum SessionStateStatusType {
   Waiting
-  Active
+  Started
   Finished
   Cancelled
 }

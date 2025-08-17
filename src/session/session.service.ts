@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -52,6 +52,21 @@ export class SessionService {
 
     if (!session) {
       throw new NotFoundException(`${this.resourceName.session} not found!`);
+    }
+
+    return session;
+  }
+
+  async validateOwner(sessionId: number, userId: number) {
+    const session = await this.prisma.session.findFirst({
+      where: {
+        id: sessionId,
+        ownerId: userId,
+      },
+    });
+
+    if (!session) {
+      throw new ConflictException('This user is not the session owner!');
     }
 
     return session;
