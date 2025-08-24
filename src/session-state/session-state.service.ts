@@ -33,6 +33,11 @@ export class SessionStateService {
 
       const sessionState = await this.prismaService.sessionState.create({
         data: {
+          currentPlayer: {
+            connect: {
+              id: userId,
+            },
+          },
           session: { connect: { id: sessionId } },
           players: {
             create: {
