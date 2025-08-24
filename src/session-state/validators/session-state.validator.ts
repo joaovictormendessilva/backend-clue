@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { SessionStateStatusType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionService } from 'src/session/session.service';
@@ -6,6 +6,7 @@ import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class SessionStateValidator {
+  private readonly minQtyPlayersToStart = 2;
   private readonly playersLimit = 4;
 
   constructor(
@@ -87,6 +88,18 @@ export class SessionStateValidator {
 
     if (isSessionStateAlreadyFinished) {
       throw new ConflictException('This session state is already finished!');
+    }
+  }
+
+  async ensureEnoughPlayersToStart(sessionStateId: number) {
+    const playersQty = await this.prismaService.player.count({
+      where: {
+        sessionStateId,
+      },
+    });
+
+    if (playersQty < this.minQtyPlayersToStart) {
+      throw new BadRequestException(`You need at least ${this.minQtyPlayersToStart} players to start!`);
     }
   }
 

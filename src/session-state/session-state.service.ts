@@ -9,6 +9,7 @@ import { LeaveSessionStateDto } from './dto/leave-session-state.dto';
 import { CancelSessionStateDto } from './dto/cancel-session-state.dto';
 import { StartSessionStateDto } from './dto/start-session-state.dto';
 import { FinishSessionStateDto } from './dto/finish-session-state.dto';
+import { PlayerCardService } from 'src/player-card/player-card.service';
 
 @Injectable()
 export class SessionStateService {
@@ -19,6 +20,7 @@ export class SessionStateService {
   constructor(
     private readonly sessionStateValidator: SessionStateValidator,
     private readonly prismaService: PrismaService,
+    private readonly playerCardService: PlayerCardService,
   ) {}
 
   async createWithFirstPlayer(createSessionStateDto: CreateSessionStateDto) {
@@ -69,6 +71,8 @@ export class SessionStateService {
     const { userId } = joinSessionDto;
 
     try {
+      await this.sessionStateValidator.ensureSessionStateIsNotStarted(sessionStateId);
+
       await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
 
       await this.sessionStateValidator.ensureUserExists(userId);
@@ -156,6 +160,8 @@ export class SessionStateService {
   async startSessionState(sessionStateId: number, startSessionStateDto: StartSessionStateDto) {
     const { sessionId, userId } = startSessionStateDto;
 
+    await this.sessionStateValidator.ensureEnoughPlayersToStart(sessionStateId);
+
     await this.sessionStateValidator.ensureSessionStateOwnerCanUpdateStatus({
       sessionId,
       sessionStateId,
@@ -163,6 +169,8 @@ export class SessionStateService {
       checkNotFinished: true,
       checkNotStarted: true,
     });
+
+    await this.playerCardService.distributeCards(sessionStateId);
 
     const updatedSessionState = await this.updateSessionStateToStarted(sessionStateId);
 
