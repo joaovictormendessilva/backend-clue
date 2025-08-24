@@ -95,6 +95,8 @@ model SessionState {
 
   players Player[] @relation("PlayersInSession")
 
+  playerCard PlayerCard[]
+
   @@map("session_states")
 }
 
@@ -107,7 +109,26 @@ model Player {
   sessionStateId Int          @map("session_state_id")
   sessionState   SessionState @relation("PlayersInSession", fields: [sessionStateId], references: [id])
 
+  playerCard PlayerCard[]
+
   @@unique([userId, sessionStateId])
+  @@map("player")
+}
+
+model PlayerCard {
+  id Int @id @default(autoincrement())
+
+  playerId Int    @map("player_id")
+  player   Player @relation(fields: [playerId], references: [id])
+
+  sessionStateId Int          @map("session_state_id")
+  sessionState   SessionState @relation(fields: [sessionStateId], references: [id])
+
+  cardId Int  @map("card_id")
+  card   Card @relation(fields: [cardId], references: [id])
+
+  @@unique([sessionStateId, cardId])
+  @@map("player_card")
 }
 
 model Suggestion {
@@ -151,6 +172,8 @@ model Card {
   suspectAccused FinalAccusation[] @relation("SuspectAccused")
   roomAccused    FinalAccusation[] @relation("RoomAccused")
   weaponAccused  FinalAccusation[] @relation("WeaponAccused")
+
+  playerCard PlayerCard[]
 
   @@map("cards")
 }

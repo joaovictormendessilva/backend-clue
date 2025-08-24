@@ -45,12 +45,22 @@ CREATE TABLE "session_states" (
 );
 
 -- CreateTable
-CREATE TABLE "Player" (
+CREATE TABLE "player" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "session_state_id" INTEGER NOT NULL,
 
-    CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "player_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "player_card" (
+    "id" SERIAL NOT NULL,
+    "player_id" INTEGER NOT NULL,
+    "session_state_id" INTEGER NOT NULL,
+    "card_id" INTEGER NOT NULL,
+
+    CONSTRAINT "player_card_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -131,7 +141,10 @@ CREATE UNIQUE INDEX "session_states_winner_id_key" ON "session_states"("winner_i
 CREATE UNIQUE INDEX "session_states_session_id_key" ON "session_states"("session_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Player_user_id_session_state_id_key" ON "Player"("user_id", "session_state_id");
+CREATE UNIQUE INDEX "player_user_id_session_state_id_key" ON "player"("user_id", "session_state_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "player_card_session_state_id_card_id_key" ON "player_card"("session_state_id", "card_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "revealed_cards_id_key" ON "revealed_cards"("id");
@@ -161,10 +174,19 @@ ALTER TABLE "session_states" ADD CONSTRAINT "session_states_true_room_id_fkey" F
 ALTER TABLE "session_states" ADD CONSTRAINT "session_states_true_weapon_id_fkey" FOREIGN KEY ("true_weapon_id") REFERENCES "cards"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Player" ADD CONSTRAINT "Player_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "player" ADD CONSTRAINT "player_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Player" ADD CONSTRAINT "Player_session_state_id_fkey" FOREIGN KEY ("session_state_id") REFERENCES "session_states"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "player" ADD CONSTRAINT "player_session_state_id_fkey" FOREIGN KEY ("session_state_id") REFERENCES "session_states"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "player_card" ADD CONSTRAINT "player_card_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "player"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "player_card" ADD CONSTRAINT "player_card_session_state_id_fkey" FOREIGN KEY ("session_state_id") REFERENCES "session_states"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "player_card" ADD CONSTRAINT "player_card_card_id_fkey" FOREIGN KEY ("card_id") REFERENCES "cards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "suggestions" ADD CONSTRAINT "suggestions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

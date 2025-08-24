@@ -1,7 +1,13 @@
 import { createCards } from './cards.seed';
+import { createSessionsState } from './sessions-state.seed';
+import { createSessions } from './sessions.seed';
+import { createUsers } from './users.seed';
 
 export const main = async () => {
-  await createCards();
+  await Promise.all([createCards(), createUsers()]);
+
+  await createSessions();
+  await createSessionsState();
 };
 
 main()
