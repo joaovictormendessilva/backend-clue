@@ -71,6 +71,8 @@ export class SessionStateService {
     const { userId } = joinSessionDto;
 
     try {
+      await this.sessionStateValidator.ensureSessionStateIsNotStarted(sessionStateId);
+
       await this.sessionStateValidator.ensureSessionStateIsNotCancelled(sessionStateId);
 
       await this.sessionStateValidator.ensureUserExists(userId);
