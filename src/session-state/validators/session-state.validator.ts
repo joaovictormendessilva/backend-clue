@@ -37,6 +37,20 @@ export class SessionStateValidator {
     return sessionState;
   }
 
+  async ensureSessionStateExistsBySession(sessionId: number) {
+    const sessionState = await this.prismaService.sessionState.findFirst({
+      where: {
+        sessionId,
+      },
+    });
+
+    if (!sessionState) {
+      throw new NotFoundException('Session State not found for this session!');
+    }
+
+    return sessionState;
+  }
+
   async ensureSessionStateNotExistsForSession(sessionId: number) {
     const hasSessionState = await this.prismaService.sessionState.findFirst({
       where: {
@@ -125,21 +139,6 @@ export class SessionStateValidator {
     if (checkNotStarted) {
       await this.ensureSessionStateIsNotStarted(sessionStateId);
     }
-  }
-
-  async ensurePlayerExistsInSession(userId: number, sessionStateId: number) {
-    const player = await this.prismaService.player.findFirst({
-      where: {
-        userId,
-        sessionStateId,
-      },
-    });
-
-    if (!player) {
-      throw new NotFoundException('Player not found in the session state!');
-    }
-
-    return player;
   }
 
   async ensureCanAddPlayer(sessionStateId: number) {

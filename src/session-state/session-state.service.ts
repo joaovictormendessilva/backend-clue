@@ -10,6 +10,7 @@ import { CancelSessionStateDto } from './dto/cancel-session-state.dto';
 import { StartSessionStateDto } from './dto/start-session-state.dto';
 import { FinishSessionStateDto } from './dto/finish-session-state.dto';
 import { PlayerCardService } from 'src/player-card/player-card.service';
+import { PlayerValidator } from 'src/player/validators/player.validator';
 
 @Injectable()
 export class SessionStateService {
@@ -21,6 +22,7 @@ export class SessionStateService {
     private readonly sessionStateValidator: SessionStateValidator,
     private readonly prismaService: PrismaService,
     private readonly playerCardService: PlayerCardService,
+    private readonly playerValidator: PlayerValidator,
   ) {}
 
   async createWithFirstPlayer(createSessionStateDto: CreateSessionStateDto) {
@@ -134,7 +136,7 @@ export class SessionStateService {
     await this.sessionStateValidator.ensureUserExists(userId);
     await this.sessionStateValidator.ensureSessionExists(sessionId);
 
-    const player = await this.sessionStateValidator.ensurePlayerExistsInSession(userId, id);
+    const player = await this.playerValidator.ensurePlayerExistsInSessionState(userId, id);
 
     await this.prismaService.player.delete({
       where: {

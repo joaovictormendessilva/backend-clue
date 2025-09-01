@@ -7,9 +7,10 @@ import { SessionStateModule } from './session-state/session-state.module';
 import { SessionModule } from './session/session.module';
 import { UserModule } from './user/user.module';
 import { PlayerModule } from './player/player.module';
+import { SuggestionModule } from './suggestion/suggestion.module';
 
 @Module({
-  imports: [PrismaModule, CardModule, UserModule, SessionModule, SessionStateModule, PlayerCardModule, PlayerModule],
+  imports: [PrismaModule, CardModule, UserModule, SessionModule, SessionStateModule, PlayerCardModule, PlayerModule, SuggestionModule],
   providers: [PrismaService],
 })
 export class AppModule {}

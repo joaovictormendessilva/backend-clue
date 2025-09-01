@@ -5,6 +5,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PlayerValidator {
   constructor(private readonly prismaService: PrismaService) {}
 
+  async ensurePlayerExists(userId: number) {
+    const player = await this.prismaService.player.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    if (!player) {
+      throw new NotFoundException('Player not found!');
+    }
+
+    return player;
+  }
+
   async ensurePlayerExistsInSessionState(playerId: number, sessionStateId: number) {
     const player = await this.prismaService.player.findFirst({
       where: {
@@ -16,5 +30,7 @@ export class PlayerValidator {
     if (!player) {
       throw new NotFoundException('Player not found in session state');
     }
+
+    return player;
   }
 }
