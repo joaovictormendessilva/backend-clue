@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SessionStateStatusType } from '@prisma/client';
+import { Player, SessionState, SessionStateStatusType } from '@prisma/client';
 import { handlePrismaError } from 'src/prisma/common/prisma-error-handling';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionStateValidator } from 'src/session-state/validators/session-state.validator';
@@ -35,11 +35,6 @@ export class SessionStateService {
 
       const sessionState = await this.prismaService.sessionState.create({
         data: {
-          currentPlayer: {
-            connect: {
-              id: userId,
-            },
-          },
           session: { connect: { id: sessionId } },
           players: {
             create: {
@@ -179,7 +174,9 @@ export class SessionStateService {
 
     await this.playerCardService.distributeCards(sessionStateId);
 
-    const updatedSessionState = await this.updateSessionStateToStarted(sessionStateId);
+    const startedSessionState = await this.updateSessionStateToStarted(sessionStateId);
+
+    const updatedSessionState = await this.shufflePlayerSequence(startedSessionState);
 
     return updatedSessionState;
   }
@@ -210,6 +207,28 @@ export class SessionStateService {
     });
 
     const updatedSessionState = await this.updateSessionStateToCancelled(sessionStateId);
+
+    return updatedSessionState;
+  }
+
+  private async shufflePlayerSequence(sessionState: SessionState & { players: Player[] }) {
+    const players = sessionState.players;
+
+    const shuffledSequence = players.sort(() => Math.random() - 0.5);
+    const firstPlayer = shuffledSequence[0];
+
+    const updatedSessionState = await this.prismaService.sessionState.update({
+      data: {
+        ...sessionState,
+        players: {
+          create: shuffledSequence,
+        },
+        currentPlayerId: firstPlayer.id,
+      },
+      where: {
+        id: sessionState.id,
+      },
+    });
 
     return updatedSessionState;
   }
